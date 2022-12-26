@@ -1,0 +1,30 @@
+databases:
+  - name: demo
+    databaseName: demo
+    user: demo
+
+services:
+  - type: redis
+    name: demo-redis
+    region: ohio
+    maxmemoryPolicy: noeviction
+    ipAllowList: [] # only allow internal connections
+
+  - type: web
+    name: demo-web
+    env: ruby
+    region: ohio
+    buildCommand: './bin/render-build.sh'
+    startCommand: bundle exec puma -C config/puma.rb
+    envVars:
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: demo-redis
+          property: connectionString
+      - key: RAILS_MASTER_KEY
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: demo
+          property: connectionString
